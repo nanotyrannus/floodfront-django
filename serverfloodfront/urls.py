@@ -19,10 +19,12 @@ from server import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('ping/', views.ping, name='ping'),
-    path('login', views.login, name='login'),
-    path('marker/2/retrieve', views.get_markers, name='get-markers'),
-    path('marker/2', views.create_marker, name='create-marker'),
-    path('marker/<int:marker_id>/update', views.update_marker, name='update-marker'),
-    path('marker/<int:marker_id>/delete', views.delete_marker, name='delete-marker'),
+    path('api/ping/', views.ping, name='ping'),
+    path('api/login', views.login, name='login'),
+    path('api/marker/2/retrieve', views.get_markers, name='get-markers'),
+    path('api/marker/2', views.create_marker, name='create-marker'),
+    path('api/marker/<int:marker_id>/update', views.update_marker, name='update-marker'),
+    path('api/marker/<int:marker_id>/delete', views.delete_marker, name='delete-marker'),
+    path('api/marker/<int:marker_id>/description', views.add_description, name='add-description'),
+    path('api/marker/upload', views.upload_image, name='upload-image'),
 ]
