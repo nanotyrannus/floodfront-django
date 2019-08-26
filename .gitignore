@@ -1,4 +1,6 @@
 db.sqlite3
-serverfloodfront.sock
+*.sock
 .vscode
 __pycache__
+uploads/
+*.sql
