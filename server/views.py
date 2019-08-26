@@ -5,6 +5,7 @@ from .models import User, Marker
 from django.views.decorators.csrf import csrf_exempt
 from json import loads
 from django.db.models import ObjectDoesNotExist
+from .forms import UploadedFileForm
 
 @csrf_exempt
 def ping(request):
@@ -88,3 +89,51 @@ def delete_marker(request, **kwargs):
         'marker_id' : id,
         'action' : 'delete'
     })
+
+@csrf_exempt
+def add_description(request, **kwargs):
+    id = kwargs['marker_id']
+    data = loads(request.body)
+    desc = data['description']
+    if Marker.objects.filter(id=id).update(description=desc) > 0:
+        return JsonResponse({
+            'status' : 'success',
+            'marker_id' : id,
+            'action' : 'add-description'
+        })
+    else:
+        return JsonResponse({
+            'status' : 'failure',
+            'message' : 'Marker not found',
+            'action' : 'add-description'
+        })
+
+@csrf_exempt
+def upload_image(request, **kwargs):
+    print("Upload image.")
+    if request.method == 'POST':
+        form = UploadedFileForm(data=request.POST, files=request.FILES)
+        if form.is_valid():
+            print("Valid form")
+            data = form.cleaned_data
+            print(data)
+            image = request.FILES.get('image')
+            if 'jpeg' in image.content_type or 'jpg' in image.content_type:
+                name = "{}.jpg".format(data['marker_id'])
+            elif 'png' in image.content_type:
+                name = "{}.png".format(data['marker_id'])
+            upload_handler(image, name)
+        else:
+            print("Invalid")
+            print(form.errors)
+    return JsonResponse({
+        'action' : 'upload-image'
+    })
+
+import os
+
+def upload_handler(f, file_name):
+    dest = os.path.join('uploads', file_name)
+    with open(dest, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
