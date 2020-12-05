@@ -1,10 +1,10 @@
+from json import loads
 from django.shortcuts import render
+from django.db.models import ObjectDoesNotExist
 from django.http import JsonResponse, HttpResponseNotAllowed
+from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from .models import User, Marker
-from django.views.decorators.csrf import csrf_exempt
-from json import loads
-from django.db.models import ObjectDoesNotExist
 from .forms import UploadedFileForm
 
 @csrf_exempt
@@ -18,14 +18,21 @@ def ping(request):
 @csrf_exempt
 def login(request):
     if request.method == 'POST' or request.method == 'OPTIONS':
-        res = JsonResponse({
-            'email' : 'test@email.com'
-        })
+        email = loads(request.body.decode(encoding='utf-8'))['email']
+        if not User.objects.filter(email=email).exists():
+            u = User(email=email)
+            u.save()
+            res = JsonResponse({
+                'email' : email,
+                'message' : 'New email added.'
+            })
+        else:
+            res = JsonResponse({
+                'email' : email
+            })
         return res
     else:
-        return JsonResponse({
-            'error' : 'You must POST to this endpoint.'
-        })
+        return HttpResponseNotAllowed(['POST','OPTIONS'])
 
 @csrf_exempt
 def get_markers(request):
@@ -73,22 +80,34 @@ def update_marker(request, **kwargs):
             marker = Marker.objects.get(id=id)
             Marker.objects.filter(id=id).update(lat=data['lat'], lon=data['lon'])
 
-    return JsonResponse({
-        'status' : 'success',
-        'marker_id' : kwargs['marker_id'],
-        'action' : 'update'
-    })
+        return JsonResponse({
+            'status' : 'success',
+            'marker_id' : kwargs['marker_id'],
+            'action' : 'update'
+        })
+    else:
+        return HttpResponseNotAllowed(['POST','OPTIONS'])
 
 @csrf_exempt
 def delete_marker(request, **kwargs):
-    id = kwargs['marker_id']
-    print('Delete Marker with ID {}'.format(id))
-    Marker.objects.filter(id=id).delete()
-    return JsonResponse({
-        'status' : 'success',
-        'marker_id' : id,
-        'action' : 'delete'
-    })
+    if request.method == 'POST':
+        id = kwargs['marker_id']
+        print('Delete Marker with ID {}'.format(id))
+        if Marker.objects.filter(id=id).delete()[0] > 0:
+            return JsonResponse({
+                'status' : 'success',
+                'marker_id' : id,
+                'action' : 'delete'
+            })
+        else:
+            return JsonResponse({
+                'status' : 'failure',
+                'marker_id' : id,
+                'action' : 'delete',
+                'message' : 'No marker found with id {}.'.format(id)
+            })
+    else:
+        return HttpResponseNotAllowed(['POST'])
 
 @csrf_exempt
 def add_description(request, **kwargs):
