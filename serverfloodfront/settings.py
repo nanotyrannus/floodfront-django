@@ -25,7 +25,16 @@ SECRET_KEY = '0sclo7icz)nq1c^6^uwq+%9hzqhpfysj891xkvw+n7(rmh-iaj'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['flood.rconstantino.com', 'floodbackend']
+ALLOWED_HOSTS = [
+    'localhost',
+    'flood.rconstantino.com', 
+    'floodbackend', 
+    'iseeflood.com', 
+    'docker.rconstantino.com', 
+    'test.rconstantino.com', 
+    'floodfront.com', 
+    'floodfront.net', 
+]
 
 
 # Application definition
